@@ -2,185 +2,82 @@ package com.codemanship.rockpaperscissors;
 
 public class Program {
 
-    public static void main(String[] args) {
+    final static class TestResults {
         int testsPassed = 0;
         int testsFailed = 0;
 
-        // output header
-        System.out.println("Running RockPaperScissors tests...");
+        void fail(String scenario, int expected, int actual) {
+            testsFailed++;
+            log("%s: FAIL - expected %d but was %d", scenario, expected, actual);
+        }
+
+        void fail(String scenario, String expected) {
+            testsFailed++;
+            log("%s: FAIL - %s", scenario, expected);
+        }
+
+        void pass(String message) {
+            testsPassed++;
+            log("%s: PASS", message);
+        }
+
+        private void log(String message, Object... parameters) {
+            System.out.println(String.format(message, parameters));
+        }
+    }
+
+    void assertRound(TestResults results, String move1, String move2, int expected, String scenarioName) throws InvalidMoveException {
+        String scenario = String.format("%s (%s, %s)", scenarioName, move1, move2);
+
+        int actual = playRound(move1, move2);
+        if (actual == expected) {
+            results.pass(scenario);
+        } else {
+            results.fail(scenario, expected, actual);
+        }
+    }
+
+    int playRound(String move1, String move2) throws InvalidMoveException {
+        return new Round().play(move1, move2);
+    }
+
+    TestResults runRoundTests() throws InvalidMoveException {
+        TestResults results = new TestResults();
 
         // Round tests
         System.out.println("Round tests...");
 
-        // rock blunts scissors
-        int result = 0;
+        assertRound(results, "Rock", "Scissors", 1, "rock blunts scissors");
+        assertRound(results, "Scissors", "Rock", 2, "rock blunts scissors");
+        assertRound(results, "Scissors", "Paper", 1, "scissors cut paper");
+        assertRound(results, "Paper", "Scissors", 2, "scissors cut paper");
+        assertRound(results, "Paper", "Rock", 1, "paper wraps rock");
+        assertRound(results, "Rock", "Paper", 2, "paper wraps rock");
+        assertRound(results, "Rock", "Rock", 0, "round is a draw");
+        assertRound(results, "Scissors", "Scissors", 0, "round is a draw");
+        assertRound(results, "Paper", "Paper", 0, "round is a draw");
+
+        String scenarioName = "invalid inputs not allowed";
         try {
-            result = new Round().play("Rock", "Scissors");
+            playRound("Blah", "Foo");
+            results.fail(scenarioName, "expected InvalidMoveException");
         } catch (InvalidMoveException e) {
-            e.printStackTrace();
-        }
-        if (result == 1)
-        {
-            testsPassed++;
-            System.out.println("rock blunts scissors (Rock, Scissors): PASS");
-        }
-        else
-        {
-            testsFailed++;
-            System.out.println(String.format("rock blunts scissors (Rock, Scissors): FAIL - expected 1 but was %d", result));
+            results.pass(scenarioName);
         }
 
-        try {
-            result = new Round().play("Scissors", "Rock");
-        } catch (InvalidMoveException e) {
-            e.printStackTrace();
-        }
-        if (result == 2)
-        {
-            testsPassed++;
-            System.out.println("rock blunts scissors (Scissors, Rock): PASS");
-        }
-        else
-        {
-            testsFailed++;
-            System.out.println(String.format("rock blunts scissors (Scissors, Rock): FAIL - expected 2 but was %d", result));
-        }
+        return results;
+    }
 
-        // scissors cut paper
-        try {
-            result = new Round().play("Scissors", "Paper");
-        } catch (InvalidMoveException e) {
-            e.printStackTrace();
-        }
-        if (result == 1)
-        {
-            testsPassed++;
-            System.out.println("scissors cut paper (Scissors, Paper): PASS");
-        }
-        else
-        {
-            testsFailed++;
-            System.out.println(String.format("scissors cut paper (Scissors, Paper): FAIL - expected 1 but was %d", result));
-        }
+    public static void main(String[] args) throws Exception {
+        int testsPassed = 0;
+        int testsFailed = 0;
 
-        try {
-            result = new Round().play("Paper", "Scissors");
-        } catch (InvalidMoveException e) {
-            e.printStackTrace();
-        }
-        if (result == 2)
-        {
-            testsPassed++;
-            System.out.println("scissors cut paper (Paper, Scissors): PASS");
-        }
-        else
-        {
-            testsFailed++;
-            System.out.println(String.format("scissors cut paper (Paper, Scissors): FAIL - expected 2 but was %d", result));
-        }
+        TestResults roundResults = new Program().runRoundTests();
+        testsPassed += roundResults.testsPassed;
+        testsFailed += roundResults.testsFailed;
 
-        // paper wraps rock
-        try {
-            result = new Round().play("Paper", "Rock");
-        } catch (InvalidMoveException e) {
-            e.printStackTrace();
-        }
-        if (result == 1)
-        {
-            testsPassed++;
-            System.out.println("paper wraps rock (Paper, Rock): PASS");
-        }
-        else
-        {
-            testsFailed++;
-            System.out.println(String.format("paper wraps rock (Paper, Rock): FAIL - expected 1 but was %d", result));
-        }
-
-        try {
-            result = new Round().play("Rock", "Paper");
-        } catch (InvalidMoveException e) {
-            e.printStackTrace();
-        }
-        if (result == 2)
-        {
-            testsPassed++;
-            System.out.println("paper wraps rock (Rock, Paper): PASS");
-        }
-        else
-        {
-            testsFailed++;
-            System.out.println(String.format("paper wraps rock (Rock, Paper): FAIL - expected 2 but was %d", result));
-        }
-
-        // round is a draw
-        try {
-            result = new Round().play("Rock", "Rock");
-        } catch (InvalidMoveException e) {
-            e.printStackTrace();
-        }
-        if (result == 0)
-        {
-            testsPassed++;
-            System.out.println("round is a draw (Rock, Rock): PASS");
-        }
-        else
-        {
-            testsFailed++;
-            System.out.println(String.format("round is a draw (Rock, Rock): FAIL - expected 0 but was %d", result));
-        }
-
-        try {
-            result = new Round().play("Scissors", "Scissors");
-        } catch (InvalidMoveException e) {
-            e.printStackTrace();
-        }
-        if (result == 0)
-        {
-            testsPassed++;
-            System.out.println("round is a draw (Scissors, Scissors): PASS");
-        }
-        else
-        {
-            testsFailed++;
-            System.out.println(String.format("round is a draw (Scissors, Scissors): FAIL - expected 0 but was %d", result));
-        }
-
-        try {
-            result = new Round().play("Paper", "Paper");
-        } catch (InvalidMoveException e) {
-            e.printStackTrace();
-        }
-        if (result == 0)
-        {
-            testsPassed++;
-            System.out.println("round is a draw (Paper, Paper): PASS");
-        }
-        else
-        {
-            testsFailed++;
-            System.out.println(String.format("round is a draw (Paper, Paper): FAIL - expected 0 but was %d", result));
-        }
-
-        // invalid inputs not allowed
-        Exception exception = null;
-
-        try
-        {
-            new Round().play("Blah", "Foo");
-        } catch (InvalidMoveException e) {
-            exception = e;
-        }
-
-        if (exception.getClass() == InvalidMoveException.class)
-        {
-            testsPassed++;
-            System.out.println("invalid inputs not allowed: PASS");
-        }
-            else
-        {
-            testsFailed++;
-            System.out.println("invalid inputs not allowed: FAIL - expected InvalidMoveException");
-        }
+        // output header
+        System.out.println("Running RockPaperScissors tests...");
 
         // Game tests
         System.out.println("Game tests...");
@@ -195,14 +92,11 @@ public class Program {
             e.printStackTrace();
         }
 
-        result = listener.getWinner();
-        if (result == 1)
-        {
+        int result = listener.getWinner();
+        if (result == 1) {
             testsPassed++;
             System.out.println("player 1 wins game: PASS");
-        }
-        else
-        {
+        } else {
             testsFailed++;
             System.out.println(String.format("player 1 wins game: FAIL - expected 1 but was %d", result));
         }
@@ -218,13 +112,10 @@ public class Program {
         }
 
         result = listener.getWinner();
-        if (result == 2)
-        {
+        if (result == 2) {
             testsPassed++;
             System.out.println("player 2 wins game: PASS");
-        }
-        else
-        {
+        } else {
             testsFailed++;
             System.out.println(String.format("player 2 wins game: FAIL - expected 2 but was %d", result));
         }
@@ -240,13 +131,10 @@ public class Program {
         }
 
         result = listener.getWinner();
-        if (result == 0)
-        {
+        if (result == 0) {
             testsPassed++;
             System.out.println("drawers not counted: PASS");
-        }
-        else
-        {
+        } else {
             testsFailed++;
             System.out.println(String.format("drawers not counted: FAIL - expected 0 but was %d", result));
         }
@@ -254,24 +142,18 @@ public class Program {
         //invalid moves not counted
         listener = new SpyGameListener();
         game = new Game(listener);
-        try
-        {
+        try {
             game.PlayRound("Blah", "Foo");
             game.PlayRound("Rock", "Scissors");
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
 
         }
 
         result = listener.getWinner();
-        if (result == 0)
-        {
+        if (result == 0) {
             testsPassed++;
             System.out.println("invalid moves not counted: PASS");
-        }
-        else
-        {
+        } else {
             testsFailed++;
             System.out.println(String.format("invalid moves not counted: FAIL - expected 0 but was %d", result));
         }
